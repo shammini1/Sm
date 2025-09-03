@@ -108,7 +108,7 @@ module.exports = {
       out.on("finish", () => {
         api.sendMessage(
           {
-            body: "✅ Cyberpunk Bot Uptime Info:",
+            body: "⚡𝙷𝚒 𝙼𝚒'𝚜 𝚄𝚙𝚝𝚒𝚖𝚎 𝚒𝚗𝚏𝚘:",
             attachment: fs.createReadStream(outPath)
           },
           event.threadID,
