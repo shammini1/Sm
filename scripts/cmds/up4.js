@@ -1,39 +1,24 @@
-Command executed successfully:
+const { createCanvas } = require("canvas");
+const fs = require("fs");
 const os = require("os");
+const path = require("path");
 
 module.exports = {
   config: {
     name: "up2",
-    version: "4.0-up7",
-    author: "Amit⚡Max | Mod by Xrotick",
+    version: "3.3",
+    author: "Maruf",
     role: 0,
-    shortDescription: { en: "Stylish uptime with loading animation" },
+    shortDescription: { en: "Cyberpunk gamer uptime card" },
     longDescription: {
-      en: "Displays stylish uptime with current time/date and animated loading."
+      en: "Sends uptime and system info as a neon cyberpunk-style card image."
     },
     category: "system",
-    guide: { en: "{p}uptime" }
+    guide: { en: "{p}up2" }
   },
 
   onStart: async function ({ api, event }) {
-    const delay = ms => new Promise(res => setTimeout(res, ms));
-    const loadStages = [
-      "[ █░░░░░░░░░░░░░░ ]",
-      "[ █████░░░░░░░░░░ ]",
-      "[ █████████░░░░░░ ]",
-      "[ █████████████░░ ]",
-      "[ ███████████████ ]"
-    ];
-
     try {
-      const loading = await api.sendMessage("🪐 𝐋𝐨𝐚𝐝𝐢𝐧𝐠 𝐁𝐨𝐭 𝐔𝐩𝐭𝐢𝐦𝐞...\n" + loadStages[0], event.threadID);
-
-      for (let i = 1; i < loadStages.length; i++) {
-        await delay(250);
-        await api.editMessage(`🪐 𝐋𝐨𝐚𝐝𝐢𝐧𝐠 𝐁𝐨𝐭 𝐔𝐩𝐭𝐢𝐦𝐞...\n${loadStages[i]}`, loading.messageID, event.threadID);
-      }
-
-      const memoryUsage = (process.memoryUsage().rss / 1024 / 1024).toFixed(2);
       const uptime = process.uptime();
       const days = Math.floor(uptime / 86400);
       const hours = Math.floor((uptime % 86400) / 3600);
@@ -41,30 +26,99 @@ module.exports = {
       const seconds = Math.floor(uptime % 60);
       const uptimeFormatted = `${days}d ${hours}h ${minutes}m ${seconds}s`;
 
+      const memoryUsage = (process.memoryUsage().rss / 1024 / 1024).toFixed(2);
       const now = new Date().toLocaleString("en-US", {
         timeZone: "Asia/Dhaka",
         hour12: true
       });
       const [date, time] = now.split(", ");
 
-      const finalMessage = `
-🪐 𝐁𝐎𝐓 𝐔𝐏𝐓𝐈𝐌𝐄 𝐒𝐓𝐀𝐓𝐒 🪐
+      // Canvas size
+      const width = 900;
+      const height = 600;
+      const canvas = createCanvas(width, height);
+      const ctx = canvas.getContext("2d");
 
-🕰️ ᴜᴘᴛɪᴍᴇ: ${uptimeFormatted}
-🕓 ᴛɪᴍᴇ: ${time}
-📆 ᴅᴀᴛᴇ: ${date}
+      // Futuristic neon background
+      const gradient = ctx.createLinearGradient(0, 0, width, height);
+      gradient.addColorStop(0, "#0f0c29");
+      gradient.addColorStop(0.5, "#302b63");
+      gradient.addColorStop(1, "#24243e");
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, width, height);
 
-💾 ʀᴀᴍ ᴜꜱᴀɢᴇ: ${memoryUsage} MB
-🖥️ ᴏꜱ: ${os.platform()} (${os.arch()})
-🛠️ ɴᴏᴅᴇ: ${process.version}
-      `.trim();
+      // Neon glowing card
+      const cardX = 60;
+      const cardY = 70;
+      const cardW = width - 120;
+      const cardH = height - 160;
+      ctx.fillStyle = "rgba(10, 10, 20, 0.75)";
+      ctx.strokeStyle = "#00fff7";
+      ctx.lineWidth = 5;
+      ctx.shadowColor = "#00fff7";
+      ctx.shadowBlur = 25;
+      ctx.beginPath();
+      ctx.roundRect(cardX, cardY, cardW, cardH, 25);
+      ctx.fill();
+      ctx.stroke();
 
-      await delay(300);
-      await api.editMessage(finalMessage, loading.messageID, event.threadID);
+      // Title with neon pink + techno font
+      ctx.font = "bold 42px Impact, Orbitron, sans-serif";
+      ctx.fillStyle = "#ff2fd0";
+      ctx.textAlign = "center";
+      ctx.shadowColor = "#ff2fd0";
+      ctx.shadowBlur = 20;
+      ctx.fillText("⚡ BOT UPTIME STATS ⚡", width / 2, 130);
+
+      // Info lines with cyan glow + monospace font
+      ctx.font = "26px Consolas, Lucida Console, monospace";
+      ctx.fillStyle = "#00fff7";
+      ctx.shadowColor = "#00fff7";
+      ctx.shadowBlur = 15;
+
+      const lines = [
+        `🕰️ Uptime: ${uptimeFormatted}`,
+        `🕓 Time: ${time}`,
+        `📆 Date: ${date}`,
+        `💾 RAM Usage: ${memoryUsage} MB`,
+        `🖥️ OS: ${os.platform()} (${os.arch()})`,
+        `🛠️ Node: ${process.version}`
+      ];
+
+      let y = 200;
+      for (const line of lines) {
+        ctx.fillText(line, width / 2, y);
+        y += 55;
+      }
+
+      // Signature with stylish font
+      ctx.font = "bold 24px 'Brush Script MT', 'Comic Sans MS', cursive";
+      ctx.fillStyle = "#ff00ff";
+      ctx.textAlign = "right";
+      ctx.shadowColor = "#ff00ff";
+      ctx.shadowBlur = 25;
+      ctx.fillText("© Maruf", width - 80, height - 40);
+
+      // Save + send
+      const outPath = path.join(__dirname, "uptime-cyberpunk.png");
+      const out = fs.createWriteStream(outPath);
+      const stream = canvas.createPNGStream();
+      stream.pipe(out);
+
+      out.on("finish", () => {
+        api.sendMessage(
+          {
+            body: "✅ Cyberpunk Bot Uptime Info:",
+            attachment: fs.createReadStream(outPath)
+          },
+          event.threadID,
+          () => fs.unlinkSync(outPath)
+        );
+      });
 
     } catch (err) {
-      console.error("Uptime error:", err);
-      api.sendMessage("❌ Ping problem, wait a moment and try again.", event.threadID);
+      console.error("Uptime card error:", err.message);
+      api.sendMessage("❌ Could not generate uptime card.", event.threadID);
     }
   }
 };
