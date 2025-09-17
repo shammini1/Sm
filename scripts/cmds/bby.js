@@ -1,11 +1,11 @@
 const axios = require('axios');
 const baseApiUrl = async () => {
-    return "https://noobs-api.top/dipto";
+    return "https://www.noobs-api.rf.gd/dipto";
 };
 
 module.exports.config = {
     name: "bby",
-    aliases: ["baby", "bbe", "babe", "maruf", "himi"],
+    aliases: ["baby", "bbe", "bot", "maruf", "babe"],
     version: "6.9.0",
     author: "dipto",
     countDown: 0,
@@ -41,7 +41,7 @@ module.exports.onStart = async ({
         }
 
         if (args[0] === 'rm' && dipto.includes('-')) {
-            const [fi, f] = dipto.replace("rm ", "").split(/\s*-\s*/);
+            const [fi, f] = dipto.replace("rm ", "").split(' - ');
             const da = (await axios.get(`${link}?remove=${fi}&index=${f}`)).data.message;
             return api.sendMessage(da, event.threadID, event.messageID);
         }
@@ -49,12 +49,10 @@ module.exports.onStart = async ({
         if (args[0] === 'list') {
             if (args[1] === 'all') {
                 const data = (await axios.get(`${link}?list=all`)).data;
-                const limit = parseInt(args[2]) || 100;
-                const limited = data?.teacher?.teacherList?.slice(0, limit)
-                const teachers = await Promise.all(limited.map(async (item) => {
+                const teachers = await Promise.all(data.teacher.teacherList.map(async (item) => {
                     const number = Object.keys(item)[0];
                     const value = item[number];
-                    const name = await usersData.getName(number).catch(() => number) || "Not found";
+                    const name = (await usersData.get(number)).name;
                     return {
                         name,
                         value
@@ -64,8 +62,8 @@ module.exports.onStart = async ({
                 const output = teachers.map((t, i) => `${i + 1}/ ${t.name}: ${t.value}`).join('\n');
                 return api.sendMessage(`Total Teach = ${data.length}\n👑 | List of Teachers of baby\n${output}`, event.threadID, event.messageID);
             } else {
-                const d = (await axios.get(`${link}?list=all`)).data;
-                return api.sendMessage(`❇️ | Total Teach = ${d.length || "api off"}\n♻️ | Total Response = ${d.responseLength || "api off"}`, event.threadID, event.messageID);
+                const d = (await axios.get(`${link}?list=all`)).data.length;
+                return api.sendMessage(`Total Teach = ${d}`, event.threadID, event.messageID);
             }
         }
 
@@ -76,24 +74,24 @@ module.exports.onStart = async ({
         }
 
         if (args[0] === 'edit') {
-            const command = dipto.split(/\s*-\s*/)[1];
+            const command = dipto.split(' - ')[1];
             if (command.length < 2) return api.sendMessage('❌ | Invalid format! Use edit [YourMessage] - [NewReply]', event.threadID, event.messageID);
             const dA = (await axios.get(`${link}?edit=${args[1]}&replace=${command}&senderID=${uid}`)).data.message;
             return api.sendMessage(`changed ${dA}`, event.threadID, event.messageID);
         }
 
         if (args[0] === 'teach' && args[1] !== 'amar' && args[1] !== 'react') {
-            [comd, command] = dipto.split(/\s*-\s*/);
+            [comd, command] = dipto.split(' - ');
             final = comd.replace("teach ", "");
             if (command.length < 2) return api.sendMessage('❌ | Invalid format!', event.threadID, event.messageID);
-            const re = await axios.get(`${link}?teach=${final}&reply=${command}&senderID=${uid}&threadID=${event.threadID}`);
+            const re = await axios.get(`${link}?teach=${final}&reply=${command}&senderID=${uid}`);
             const tex = re.data.message;
             const teacher = (await usersData.get(re.data.teacher)).name;
             return api.sendMessage(`✅ Replies added ${tex}\nTeacher: ${teacher}\nTeachs: ${re.data.teachs}`, event.threadID, event.messageID);
         }
 
         if (args[0] === 'teach' && args[1] === 'amar') {
-            [comd, command] = dipto.split(/\s*-\s*/);
+            [comd, command] = dipto.split(' - ');
             final = comd.replace("teach ", "");
             if (command.length < 2) return api.sendMessage('❌ | Invalid format!', event.threadID, event.messageID);
             const tex = (await axios.get(`${link}?teach=${final}&senderID=${uid}&reply=${command}&key=intro`)).data.message;
@@ -101,7 +99,7 @@ module.exports.onStart = async ({
         }
 
         if (args[0] === 'teach' && args[1] === 'react') {
-            [comd, command] = dipto.split(/\s*-\s*/);
+            [comd, command] = dipto.split(' - ');
             final = comd.replace("teach react ", "");
             if (command.length < 2) return api.sendMessage('❌ | Invalid format!', event.threadID, event.messageID);
             const tex = (await axios.get(`${link}?teach=${final}&react=${command}`)).data.message;
@@ -136,9 +134,6 @@ module.exports.onReply = async ({
     event,
     Reply
 }) => {
-   
-    if ([api.getCurrentUserID()].includes(event.senderID)) return;
-  
     try {
         if (event.type == "message_reply") {
             const a = (await axios.get(`${await baseApiUrl()}/baby?text=${encodeURIComponent(event.body?.toLowerCase())}&senderID=${event.senderID}&font=1`)).data.reply;
@@ -164,9 +159,9 @@ module.exports.onChat = async ({
 }) => {
     try {
         const body = event.body ? event.body?.toLowerCase() : ""
-        if (body.startsWith("baby") || body.startsWith("bby") || body.startsWith("bot") || body.startsWith("jan") || body.startsWith("babu") || body.startsWith("janu")) {
+        if (body.startsWith("baby") || body.startsWith("bby") || body.startsWith("বেবি") || body.startsWith("bot") || body.startsWith("nisan") || body.startsWith("babu") || body.startsWith("বট")) {
             const arr = body.replace(/^\S+\s*/, "")
-            const randomReplies = ["😚", "Yes 😀, I am here", "What's up?", "Bolo jaan ki korte tumar jonno"];
+            const randomReplies = ["Huh kotha nai tui Marufer kew nh.😒", "তুই আমার নাহ তাই তর লগে আড়ি।🤕🤕", "𝙒𝙝𝙖𝙩'𝙨 𝙪𝙥?", "কি বলবা 🅜🅐🅡🅤🅕 বসের চিপায় বল🦆💨", "𝙣𝙖𝙬 𝙢𝙮 𝙤𝙬𝙣𝙚𝙧 𝙢𝙚𝙨𝙨𝙖𝙜𝙚 𝙙𝙖𝙬 : //m.me/absm12h", "আমাকে না ডেকে বস মারুফকে gf দে🌚", "🅜🅐🅡🅤🅕 boss era khub luccha🥺😔"];
             if (!arr) {
 
                 await api.sendMessage(randomReplies[Math.floor(Math.random() * randomReplies.length)], event.threadID, (error, info) => {
